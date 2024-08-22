@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <link rel="stylesheet" href="/home.css">
+</head>
+<body>
+    <a href="/logout" id="logout-button">Logout</a>
+
+    <div id="messages">
+        <% messages.forEach(function(message) { %>
+            <% if (message.username === 'Server') { %>
+                <% if (message.text.includes('Welcome') || message.text.includes('has left')) { %>
+                <% } else { %>
+                    <p class="server-message"><%= message.text %></p>
+                <% } %>
+            <% } else { %>
+                <p><%= message.username %>: <%= message.text %></p>
+            <% } %>
+        <% }); %>
+    </div>
+    
+    <form id="chat-form">
+        <input id="message-input" type="text" placeholder="Type a message" required>
+        <button type="submit">Send</button>
+    </form>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io.connect({ query: { username: '<%= username %>' } });
+
+        const form = document.getElementById('chat-form');
+        const input = document.getElementById('message-input');
+        const messages = document.getElementById('messages');
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const msg = input.value;
+            socket.emit('chatMessage', msg);
+            input.value = '';
+        });
+
+        socket.on('message', function(msg) {
+            const p = document.createElement('p');
+            if (msg.username === 'Server') {
+                if (msg.text.includes('has left')) {
+                    p.classList.add('server-message-left');
+                    p.textContent = msg.text;
+                } else {
+                    p.classList.add('server-message');
+                    p.textContent = msg.text.includes('Welcome') ? msg.text.replace('Welcome', 'User joined') : msg.text;
+                }
+            } else {
+                p.textContent = `${msg.username}: ${msg.text}`;
+            }
+            messages.insertBefore(p, messages.firstChild);
+        });
+
+        socket.on('loadMessages', function(existingMessages) {
+            existingMessages.forEach(function(message) {
+                const p = document.createElement('p');
+                if (message.username === 'Server') {
+                    if (message.text.includes('has left')) {
+                        p.classList.add('server-message-left');
+                        p.textContent = message.text;
+                    } else {
+                        p.classList.add('server-message');
+                        p.textContent = message.text.includes('Welcome') ? message.text.replace('Welcome', 'User joined') : message.text;
+                    }
+                } else {
+                    p.textContent = `${message.username}: ${message.text}`;
+                }
+                messages.insertBefore(p, messages.firstChild);
+            });
+        });
+
+        window.onload = function() {
+            socket.emit('getMessages');
+        };
+    </script>
+</body>
+</html>

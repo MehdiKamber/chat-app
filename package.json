@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.4.0",
+    "express-session": "^1.18.0",
+    "mongoose": "^8.5.3",
+    "node-cron": "^3.0.3",
+    "socket.io": "^4.7.5"
+  }
+}
